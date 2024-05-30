@@ -2,12 +2,12 @@
   "defaultSchema": "client_anonymisation_solution",
   "assertionSchema": "client_anonymisation_solution_assert",
   "warehouse": "bigquery",
-  "defaultDatabase": "group-data-idl-tes",
+  "defaultDatabase": "###########-tes",
   "defaultLocation": "europe-west1",
   "vars": {
       "overrideRundate":""
-    , "v_project_idl_source" : "group-data-idl-tes"
-    , "v_project_marketplace_source" : "group-data-xmarketplace-tes"
-    , "v_gcs_kleanse" : "gcs-kleanse_limited-group-data-idl-euw1-pro"
+    , "v_project_idl_source" : ""###########-tes"
+    , "v_project_marketplace_source" : ""###########-tes"
+    , "v_gcs_kleanse" : "gcs-"###########"
   }
 }
