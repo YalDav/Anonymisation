@@ -1,0 +1,11 @@
+{
+  "environments": [
+    {
+      "name": "production",
+      "gitRef": "main",
+      "configOverride": { 
+        "defaultDatabase": "group-data-idl-pro" 
+        }
+    }
+  ]
+}

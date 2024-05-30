@@ -1,0 +1,6 @@
+{
+  "name": "kleanse_selection",
+  "dependencies": {
+    "@dataform/core": "2.8.0"
+  }
+}
