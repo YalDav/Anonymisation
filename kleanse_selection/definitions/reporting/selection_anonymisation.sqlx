@@ -1,0 +1,42 @@
+config {
+    type: "table",
+    schema: `${constants.customer_solution}`,
+    tags: ["daily", "table"],
+    dependencies: ["selection_anonymisation_uniquekey_assert"],
+    description: "source table for anonymisation that shows all required information and the status for each customer",
+    name: "selection_anonymisation",
+}
+
+WITH kleanse_hist AS (SELECT DISTINCT contact_rowid,
+                                      max(integration_date)
+                                          OVER (PARTITION BY contact_rowid) AS max_integration_date
+                      FROM ${ref("input_kleanse_hist_tb") }),
+
+     contact_agg_kleanse AS (SELECT id_last_date.*,
+                                    kleanse_hist.max_integration_date AS kleanse_send_integration_date,
+                                    CASE
+                                        WHEN kleanse_hist.max_integration_date IS NOT NULL
+                                            THEN 1
+                                        ELSE 0
+                                        END                           AS flag_kleanse_previously_sent
+                             FROM ${ref("contact_agg_id_last_date") } AS id_last_date
+                                      LEFT JOIN kleanse_hist
+                                                ON TRIM(id_last_date.rowid_object) =
+                                                   cast(kleanse_hist.contact_rowid as string))
+SELECT DISTINCT *,
+                PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()}
+                )                                      AS current_date,
+                DATE_DIFF(
+                        PARSE_DATE('%Y-%m-%d',
+                                   ${scripts.getRunDate()}
+                        ), max_last_Date_rowid, DAY) AS num_difference_day,
+                CASE
+                    WHEN DATE_DIFF(PARSE_DATE('%Y-%m-%d',
+                                              ${scripts.getRunDate()}),
+                                   max_last_Date_rowid, DAY)
+                             >= retention_periods
+                        AND flag_kleanse_previously_sent = 0
+                        AND personnel_kiabi <> 'O' THEN 1
+                    ELSE 0
+                    END                                AS flag_to_be_anonymised,
+FROM contact_agg_kleanse

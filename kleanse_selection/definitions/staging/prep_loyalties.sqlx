@@ -1,0 +1,35 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  tags: ["daily", "prep"],
+  dependencies: ["loyalties_event_date_assertion","loyalties_max_integration_date_assertion", "loyalties_volume_assertion"],
+  description: " Preparing loyalties data, for next step ",
+  name: "vw_prep_loyalties"
+}
+select distinct loyalties_all.id_fid_loyalties,
+                loyalties_all.date_creation_fidelite,
+                IFNULL(loyalties_all.personnel_kiabi, "N") as personnel_kiabi,
+                loyalties_explode.date_ouverture_livre_bb,
+
+
+from (select distinct fidelite.client_id       as id_fid_loyalties,
+                      DATE(TIMESTAMP_MILLIS(fidelite.date_creation),"Europe/Paris")   as date_creation_fidelite,
+                      fidelite.personnel_kiabi as personnel_kiabi
+      from ${ref("loyalties")}) loyalties_all
+         left join
+     (select distinct fidelite.client_id               as id_fid_loyalties,
+                      date(TIMESTAMP_MILLIS(fidelite_livre_bb.date_ouverture),"Europe/Paris") as date_ouverture_livre_bb,
+
+
+      from ${ref("loyalties")},
+           unnest(fidelite.livrets) fidelite_livre_bb
+      where fidelite.no_carte not in (0)) loyalties_explode
+     on loyalties_all.id_fid_loyalties = loyalties_explode.id_fid_loyalties
+
+where loyalties_all.date_creation_fidelite <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})
+  and loyalties_explode.date_ouverture_livre_bb <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})
+      or loyalties_all.date_creation_fidelite is null 
+      or loyalties_explode.date_ouverture_livre_bb is null 
+

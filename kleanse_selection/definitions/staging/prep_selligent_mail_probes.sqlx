@@ -1,0 +1,15 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["selligent_mail_probes_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing selligent data, for next step ",
+  name: "vw_prep_selligent_mail_probes"
+}
+select distinct id,
+                name,
+                mailid,
+                probeid
+from ${ref("selligent_mail_probes")}
+where category is null
+   or category not in ('OPTOUT')

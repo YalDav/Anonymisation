@@ -1,0 +1,17 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies : ["marketplace_event_date_histo_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing web order data from marketplace 3p, for next step ",
+  name: "vw_prep_weborder_maketplace_histo"
+}
+SELECT distinct id_global_order,
+                cd_status,
+                max(date(ts_status,"Europe/Paris")) last_update_by_cd_status
+FROM ${ref("r_bow_global_order_histo")}
+where cd_status <> "CLOSED"
+  and DATE(ts_status) <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})
+  or DATE(ts_status) is null
+group by id_global_order, cd_status

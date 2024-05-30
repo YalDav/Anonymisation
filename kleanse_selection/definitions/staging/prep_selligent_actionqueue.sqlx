@@ -1,0 +1,15 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["selligent_actionqueue_event_date_assertion","selligent_actionqueue_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing selligent data, for next step ",
+  name: "vw_prep_selligent_actionqueue"
+}
+select distinct campaignid,
+                userid,
+                actionid,
+                inqueueid,
+                listid,
+                mailid
+from ${ref("selligent_actionqueue")}

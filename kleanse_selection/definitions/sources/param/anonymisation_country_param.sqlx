@@ -1,0 +1,5 @@
+config {
+  type: "declaration",
+  schema: `${constants.customer_solution}`,
+  name: "anonymisation_country_param"
+}

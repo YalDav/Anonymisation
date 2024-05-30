@@ -1,0 +1,12 @@
+config {
+    type: "table",
+    schema: `${constants.customer_solution}`,
+    tags: ["selection_send"],
+    description: "storing the the IDs of contacts with web account",
+    name: "tb_contact_id_compte_web",
+}
+
+SELECT distinct trim(rowid_object) as rowid_object,
+                id_compte_web 
+            FROM ${ref("vw_prep_contact")}
+            where id_compte_WEB is not null

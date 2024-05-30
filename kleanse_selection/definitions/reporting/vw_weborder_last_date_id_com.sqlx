@@ -1,0 +1,13 @@
+config {
+        type: "view",
+        schema: `${constants.customer_solution}`,
+        tags: ["daily", "prep"],
+        description: "get the last update date from web command 1p , connect to the customer by using the  command number on line and code_site_web",
+        name: "vw_weborder_last_date_id_com"
+}
+select distinct code_cli_site_web,
+                MAX(
+                        date_etat_weborder)
+                        over (partition by code_cli_site_web) AS
+                    last_date_weborder_id_cpte
+from ${ref("vw_prep_weborder")}

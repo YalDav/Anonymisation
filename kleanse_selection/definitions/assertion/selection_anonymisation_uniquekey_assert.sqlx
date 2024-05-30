@@ -1,0 +1,10 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert_selection"],
+    }
+SELECT *
+FROM (SELECT rowid_object,
+             COUNT(1) AS index_row_count
+      FROM ${ref("contact_agg_id_last_date")}
+      GROUP BY rowid_object) AS data
+WHERE index_row_count > 1

@@ -1,0 +1,111 @@
+config {
+  type: "table",
+  schema: `${constants.customer_solution}`,
+  tags: ["daily", "table"],
+  description: "merge data for each rowID, adding type customer and retention period",
+  name: "contact_agg_id_last_date"
+}
+
+with last_date_by_rockid AS (select distinct rowid_object,
+                                             code_pays,
+                                             flag_anonymous,
+                                             create_date          AS contact_xref_create_date,
+                                             CASE
+                                                 WHEN
+                                                         (count(distinct
+                                                                personnel_kiabi)
+                                                                over (partition by code_pays,
+                                                                    create_date,
+                                                                    rowid_object)) >
+                                                         1
+                                                     then "O"
+                                                 ELSE
+                                                     personnel_kiabi end         as personnel_kiabi,
+                                             MAX(last_date_sales_fid)
+                                                      over (partition by code_pays,
+                                                          create_date,
+                                                          rowid_object) AS last_date_sales_fid,
+
+                                             MAX(
+                                                     last_date_creation_livre_bb)
+                                                     over (partition by code_pays,
+                                                         create_date,
+                                                         rowid_object)  AS last_date_creation_livre_bb,
+                                             MAX(
+                                                     last_date_creation_cart_fid)
+                                                     over (partition by code_pays,
+                                                         create_date,
+                                                         rowid_object)  AS last_date_creation_cart_fid,
+
+                                             MAX(
+                                                     last_date_globalweborder_id_cpte)
+                                                     over (partition by code_pays,
+                                                         create_date,
+                                                         rowid_object)  AS last_date_globalweborder_id_cpte,
+
+                                             MAX(last_date_weborder_fid)
+                                                      over (partition by code_pays,
+                                                          create_date,
+                                                          rowid_object) AS last_date_weborder_fid,
+
+                                             MAX(
+                                                     last_date_weborder_id_cpte)
+                                                     over (partition by code_pays,
+                                                         create_date,
+                                                         rowid_object)  AS last_date_weborder_id_cpte,
+
+                                             MAX(last_date_clic_rowid)
+                                                      over (partition by code_pays,
+                                                          create_date,
+                                                          rowid_object) AS last_date_clic_rowid,
+
+
+                             from ${ref("contact_with_last_date")}),
+
+     country_param as (
+         (select *
+          from ${ref("anonymisation_country_param")})),
+
+     max_last_date_by_rockid as (select distinct last_date_by_rockid.*,
+
+                                                 (SELECT MAX(col)
+                                                  FROM UNNEST(
+                                                               [contact_xref_create_date,
+                                                                   last_date_sales_fid,
+                                                                   last_date_creation_livre_bb,
+                                                                   last_date_creation_cart_fid,
+                                                                   last_date_globalweborder_id_cpte,
+                                                                   last_date_weborder_fid,
+                                                                   last_date_weborder_id_cpte,
+                                                                   last_date_clic_rowid]
+                                                       ) AS col)
+                                                                       as max_last_date_rowid,
+                                                 case
+                                                     when last_date_sales_fid is null and
+                                                          last_date_globalweborder_id_cpte is null and
+                                                          last_date_weborder_fid is null and
+                                                          last_date_weborder_id_cpte is null
+                                                         then "PROSPECT"
+                                                     else "CLIENT" end as type_customer
+                                 from last_date_by_rockid)
+
+select distinct max_last_date_by_rockid.*,
+                case
+                    when max_last_date_by_rockid.code_pays in ('0', 'I') OR
+                         max_last_date_by_rockid.code_pays is null
+                        then 730 --in case we do not know the country of contact, we use 24 in order to avoid any risk
+                    when max_last_date_by_rockid.code_pays not in
+                         (select country from country_param)
+                        then 1095 --we know the country but it does not exist in our source
+                    else retention_period_days end as retention_periods
+from max_last_date_by_rockid
+         left join country_param
+                   on UPPER(TRIM(max_last_date_by_rockid.code_pays)) =
+                      UPPER(TRIM(country_param.country))
+                       and UPPER(TRIM(max_last_date_by_rockid.type_customer)) =
+                           UPPER(TRIM(country_param.type_customer))
+order by rowid_object
+
+
+
+

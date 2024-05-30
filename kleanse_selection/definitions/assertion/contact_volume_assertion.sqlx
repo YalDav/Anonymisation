@@ -1,0 +1,12 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+    }
+
+with contact_count as (select count(distinct
+                                    contact.contact_details.rowid_object) as distinct_count
+                       from ${ref("contacts")})
+
+select distinct_count
+from contact_count
+where distinct_count < 60000000

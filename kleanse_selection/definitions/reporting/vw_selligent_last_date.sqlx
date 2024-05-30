@@ -1,0 +1,26 @@
+config {
+    type: "view",
+    schema: `${constants.customer_solution}`,
+    tags: ["daily", "prep"],
+    description: "get the last update when the customer cli the email",
+    name: "vw_selligent_last_date"
+}
+select distinct contact_rowid,
+                MAX(date_cli_selligent)
+                    over (partition by contact_rowid) AS
+                    last_date_clic_rowid
+from (select *
+      from ${ref("vw_prep_selligent_flags")} s_flag
+               inner join
+           (select *
+            from ${ref("vw_prep_selligent_campaigns")} s_camp
+                     inner join ${ref("vw_prep_selligent_actionqueue")} s_action
+                                on
+                                    s_camp.id = s_action.campaignid) s_camp_action
+           on s_flag.userid = s_camp_action.userid
+               and s_flag.actionid = s_camp_action.actionid
+               and s_flag.inqueueid = s_camp_action.inqueueid
+               and s_flag.listid = s_camp_action.listid
+               inner join ${ref("vw_prep_selligent_mail_probes")} s_mp
+                          on s_mp.mailid = s_camp_action.mailid
+                              and s_mp.probeid = s_flag.probeid)

@@ -1,0 +1,13 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["selligent_campaigns_event_date_assertion","selligent_campaigns_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing selligent data, for next step ",
+  name: "vw_prep_selligent_campaigns"
+}
+select distinct id,
+                name
+from ${ref("selligent_campaigns")}
+where name not like '%désabo%'
+   or name not like '%desabo%'

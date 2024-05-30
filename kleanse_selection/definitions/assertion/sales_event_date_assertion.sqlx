@@ -1,0 +1,23 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+    }
+
+
+with arrtable AS (
+    ${scripts.renderArrayDate(scripts.getRunDate(),8,1)}
+    ),
+
+ table_event_dates AS ( select 
+        distinct date(TIMESTAMP_MILLIS(CAST(vente.date_ticket AS BIGINT)),'Europe/Paris') as event_date
+        from ${ref("sales")} 
+        where date(TIMESTAMP_MILLIS(CAST(vente.date_ticket AS BIGINT)),'Europe/Paris') <= date(${scripts.getRunDate()})
+        order by  event_date desc limit 9 )
+
+
+select distinct missed_event_date
+                          from arrtable,
+                               unnest(arrtable.DATE_ARRAY) missed_event_date
+            where missed_event_date
+                       not in (select distinct event_date
+                          from table_event_dates)

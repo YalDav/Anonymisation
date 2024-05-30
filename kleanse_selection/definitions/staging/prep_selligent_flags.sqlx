@@ -1,0 +1,23 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["selligent_flags_event_date_assertion","selligent_flags_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing selligent data, for next step ",
+  name: "vw_prep_selligent_flags"
+}
+select distinct customerid                              AS contact_rowid,
+                date(parse_timestamp('%Y/%m/%d %H:%M:%S', dt),"Europe/Paris")  AS date_cli_selligent,
+                userid,
+                actionid,
+                inqueueid,
+                listid,
+                probeid
+from ${ref("selligent_flags")}
+where listid = 8
+  and userid > 0
+  and inqueueid > 0
+  and probeid > 0
+  and probeid not in (9)
+  and date(parse_timestamp('%Y/%m/%d %H:%M:%S', dt)) <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})

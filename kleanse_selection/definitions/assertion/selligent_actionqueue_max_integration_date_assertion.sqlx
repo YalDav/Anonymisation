@@ -1,0 +1,13 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+    }
+
+WITH selligent_max_integration_date
+         AS (SELECT MAX(date(date_integration)) AS max_integration_date
+             FROM ${ref("selligent_actionqueue")}
+             where date(date_integration)<= date(${scripts.getRunDate()}))
+
+SELECT *
+FROM selligent_max_integration_date
+where max_integration_date != PARSE_DATE('%Y-%m-%d',${scripts.getRunDate()})

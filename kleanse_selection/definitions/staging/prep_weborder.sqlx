@@ -1,0 +1,18 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["weborders_event_date_assertion","weborders_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing weborder data order for 1p, for next step ",
+  name: "vw_prep_weborder"
+}
+select distinct date(timestamp_millis(entete_commande.date_etat_cde),"Europe/Paris")     AS date_etat_weborder,
+                entete_commande.code_site_web     AS code_site_web,
+                entete_commande.code_cli_site_web AS code_cli_site_web,
+                substring(entete_commande.no_carte_fid, 1,
+                          12)                     as no_carte_fid_web
+from ${ref("weborders")}
+where entete_commande.date_etat_cde > 146085100200
+  and date(timestamp_millis(entete_commande.date_etat_cde)) <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})
+      or entete_commande.date_etat_cde is null

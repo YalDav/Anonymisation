@@ -1,0 +1,18 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["sales_event_date_assertion","sales_max_integration_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing sales data, for next step ",
+  name: "vw_prep_sales"
+}
+
+select *
+from (select distinct date(timestamp_millis(vente.date_ticket),"Europe/Paris") as date_ticket_sales,
+                      vente.no_carte    as no_carte_fid_sales
+      from ${ref("sales")})
+where no_carte_fid_sales not in (0)
+  and date_ticket_sales <=
+      PARSE_DATE('%Y-%m-%d', ${scripts.getRunDate()})
+
+

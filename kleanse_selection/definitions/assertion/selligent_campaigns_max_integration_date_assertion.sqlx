@@ -1,0 +1,33 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+     ,disabled: "true"
+    }
+
+/*WITH selligent_max_integration_date
+         AS (SELECT MAX(date(date_integration)) AS max_integration_date
+             FROM ${ref("selligent_campaigns")}
+             where date(date_integration)<= "${constants.rundate}"
+             )
+
+SELECT *
+FROM selligent_max_integration_date
+where max_integration_date != PARSE_DATE('%Y-%m-%d',"${constants.rundate}")*/
+
+/* DM-447 - exclude Sundays, Mondays */
+WITH selligent_max_integration_date
+         AS (SELECT MAX(date(date_integration)) AS max_integration_date
+             FROM ${ref("selligent_campaigns")}
+             where date(date_integration)<= date(${scripts.getRunDate()})
+             and  format_date('%A', date(date_integration)) not in ("Monday","Sunday"))
+,arrtable AS (
+    ${scripts.renderArrayDate(scripts.getRunDate(),8,0)}
+    )
+    
+SELECT *
+FROM selligent_max_integration_date
+where max_integration_date != (select max(event_date)
+                                from arrtable,
+                                unnest(arrtable.DATE_ARRAY) event_date
+                                where format_date('%A', event_date) not in ("Monday","Sunday")
+                              )

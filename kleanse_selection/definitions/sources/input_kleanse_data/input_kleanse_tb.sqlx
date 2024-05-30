@@ -1,0 +1,14 @@
+config {
+  type: "operations",
+  name: "input_kleanse_tb",
+  tags : ["input_kleanse"],
+  description: "Contact IDs existing in the last kleanse file",
+  hasOutput: true,
+  disabled: true
+}
+
+CREATE OR REPLACE EXTERNAL TABLE ${self()}
+    OPTIONS (
+    format = "Avro",
+    uris = ['gs://${dataform.projectConfig.vars.v_gcs_kleanse}${constants.repertoire_gcs}/*']
+    )

@@ -1,0 +1,17 @@
+config {
+    type: "view",
+    schema: `${constants.customer_solution}`,
+    tags: ["daily", "prep"],
+    description: "last command date, connect to customer by using number of " ||
+    "loyalties card",
+    name: "vw_sales_last_date_fid"
+}
+
+select *
+from (select distinct no_carte_fid_sales,
+                      MAX(
+                                date_ticket_sales)
+                          over (partition by no_carte_fid_sales) AS
+                          last_date_sales_fid
+
+      from ${ref("vw_prep_sales")})

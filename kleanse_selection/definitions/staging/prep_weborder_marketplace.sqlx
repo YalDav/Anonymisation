@@ -1,0 +1,12 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["marketplace_event_date_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing web order data from marketplace 3p, for next step ",
+  name: "vw_prep_weborder_maketplace"
+}
+select distinct id_global_order
+              , date(ts_status,"Europe/Paris") as ts_status
+              , id_customer_bekom
+FROM ${ref("r_bow_global_order")}

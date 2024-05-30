@@ -1,0 +1,14 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+    }
+
+WITH loyalties_max_integration_date
+         AS (SELECT MAX(DATE(TIMESTAMP_MILLIS(metadata.date_integration))) AS max_integration_date
+             FROM ${ref("loyalties")}
+             where DATE(TIMESTAMP_MILLIS(metadata.date_integration))<= date(${scripts.getRunDate()}))
+
+SELECT *
+FROM loyalties_max_integration_date
+where max_integration_date != PARSE_DATE('%Y-%m-%d',${scripts.getRunDate()})
+

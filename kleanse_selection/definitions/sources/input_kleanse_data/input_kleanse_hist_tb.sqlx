@@ -1,0 +1,11 @@
+config {
+    type: "incremental",
+    tags : ["input_kleanse"],
+    name: "input_kleanse_hist_tb"  
+}
+
+SELECT DISTINCT CURRENT_DATE()                    AS integration_date,
+                DATE(cleanse_group.creation_date) AS creation_date,
+                cast(cleanses.contact_rowid as INT64) AS contact_rowid
+FROM ${ref("cleanse_data")}
+         LEFT JOIN UNNEST(cleanse_group.cleanses) as cleanses

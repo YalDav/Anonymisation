@@ -1,0 +1,21 @@
+config {
+  type: "view",
+  schema: `${constants.customer_solution}`,
+  tags: ["daily", "prep"],
+  description: "get the date of creat loyalties card and the date of open " ||
+  "livre bb",
+  name: "vw_loyalties_last_date_cre_livre_bb"
+}
+select distinct id_fid_loyalties,
+                personnel_kiabi,
+                MAX(
+                        
+                        date_creation_fidelite)
+                        over (partition by id_fid_loyalties) AS
+                    last_date_creation_cart_fid,
+                MAX(
+                        
+                        date_ouverture_livre_bb)
+                        over (partition by id_fid_loyalties) AS
+                    last_date_creation_livre_bb
+from ${ref("vw_prep_loyalties")}

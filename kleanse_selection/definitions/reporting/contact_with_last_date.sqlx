@@ -1,0 +1,56 @@
+config {
+        type: "table",
+        schema: `${constants.customer_solution}`,
+        tags: ["daily", "table"],
+        description: "joining all tables in order to get the last date associated to each rowid",
+        name: "contact_with_last_date"
+}
+
+SELECT contact.*,
+       _fid_date_sales.last_date_sales_fid,
+       IFNULL(_date_loyalti_bb_fid.personnel_kiabi, "N") personnel_kiabi,
+       _date_loyalti_bb_fid.last_date_creation_livre_bb,
+       _date_loyalti_bb_fid.last_date_creation_cart_fid,
+       _cpte_id_date_GlobalCustomerOrder.last_date_globalweborder_id_cpte,
+       _fid_date_weborder.last_date_weborder_fid,
+       _id_cpte_date_weborder.last_date_weborder_id_cpte,
+       cta_id_date_selligent.last_date_clic_rowid
+FROM ${ref("vw_contact_first_creation_date")} contact
+         LEFT JOIN (SELECT DISTINCT no_carte_fid_sales,
+                                    last_date_sales_fid
+                    FROM ${ref("vw_sales_last_date_fid")}) _fid_date_sales
+                   ON
+                           CAST(contact.no_carte_fid AS INTEGER) =
+                           _fid_date_sales.no_carte_fid_sales
+         LEFT JOIN (SELECT DISTINCT id_fid_loyalties,
+                                    personnel_kiabi,
+                                    last_date_creation_cart_fid,
+                                    last_date_creation_livre_bb
+                    FROM ${ref("vw_loyalties_last_date_cre_livre_bb")}) _date_loyalti_bb_fid
+                   ON
+                           contact.id_compte_fid =
+                           _date_loyalti_bb_fid.id_fid_loyalties
+         LEFT JOIN (SELECT DISTINCT id_compte_WEB,
+                                    last_date_globalweborder_id_cpte
+                    FROM ${ref("vw_weborder_marketplace_last_date")}) _cpte_id_date_GlobalCustomerOrder
+                   ON
+                           contact.id_compte_WEB =
+                           CAST(_Cpte_Id_date_GlobalCustomerOrder.id_compte_WEB AS STRING)
+         LEFT JOIN (SELECT DISTINCT no_carte_fid_web,
+                                    last_date_weborder_fid
+                    FROM ${ref("vw_weborder_last_date_fid")}) _fid_date_weborder
+                   ON
+                           contact.no_carte_fid =
+                           _fid_date_weborder.no_carte_fid_web
+         LEFT JOIN (SELECT DISTINCT code_cli_site_web,
+                                    last_date_weborder_id_cpte,
+                    FROM ${ref("vw_weborder_last_date_id_com")}) _id_cpte_date_weborder
+                   ON
+                           CAST(contact.id_compte_WEB AS STRING) =
+                           TRIM(_id_cpte_date_weborder.code_cli_site_web)
+         LEFT JOIN (SELECT DISTINCT contact_rowid,
+                                    last_date_clic_rowid
+                    FROM ${ref("vw_selligent_last_date")}) cta_id_date_selligent
+                   ON
+                           TRIM(contact.rowid_object) =
+                           TRIM(CAST(cta_id_date_selligent.contact_rowid AS STRING))

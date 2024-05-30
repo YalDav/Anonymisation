@@ -1,0 +1,13 @@
+config {
+  type: "test",
+  dataset: "vw_prep_sales"
+}
+
+input "sales" {
+
+SELECT struct (1697094656000 AS date_ticket, 0 AS no_carte) as vente
+UNION ALL
+SELECT struct (1697252109000 AS date_ticket, 1 AS no_carte) as vente }
+
+SELECT date("2023-10-14") AS date_ticket_sales,
+       1  AS no_carte_fid_sales

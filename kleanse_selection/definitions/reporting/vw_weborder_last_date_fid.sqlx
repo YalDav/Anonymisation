@@ -1,0 +1,18 @@
+config {
+    type: "view",
+    schema: `${constants.customer_solution}`,
+    tags: ["daily", "prep"],
+    description: "get the last update date from web command 1p, connect to the" ||
+    " customer by using the number of loyaltie card ",
+    name: "vw_weborder_last_date_fid"
+}
+select *
+from (select distinct no_carte_fid_web,
+                      MAX(
+                              
+                              date_etat_weborder)
+                              over (partition by no_carte_fid_web) AS
+                          last_date_weborder_fid,
+      from ${ref("vw_prep_weborder")}
+      where no_carte_fid_web <> '0'
+        and no_carte_fid_web is not null)

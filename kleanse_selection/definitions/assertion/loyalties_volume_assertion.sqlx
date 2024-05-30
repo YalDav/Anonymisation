@@ -1,0 +1,9 @@
+config {
+    type : "assertion",
+    tags: ["daily", "assert"]
+    }
+
+with loyalties_count as (select count(distinct fidelite.no_carte) as distinct_count from ${ref("loyalties")})
+
+select distinct_count from loyalties_count 
+where distinct_count < 30000000

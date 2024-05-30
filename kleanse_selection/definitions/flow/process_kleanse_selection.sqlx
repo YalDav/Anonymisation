@@ -1,0 +1,19 @@
+config {
+    type: "table"
+  , name: "process_kleanse_selection"  
+  , schema: `${constants.customer_solution}`
+  , tags: ["input_kleanse"]
+  , disabled: "true"
+}
+
+select 1
+
+-- DATE_SUB( PARSE_DATE('%Y-%m-%d',"${dataform.projectConfig.vars.rundate}"), INTERVAL 8 DAY),
+-- DATE_SUB(PARSE_DATE('%Y-%m-%d',"${dataform.projectConfig.vars.rundate}"), INTERVAL 1 DAY),
+-- PARSE_DATE('%Y-%m-%d', "${dataform.projectConfig.vars.rundate}"
+
+-- date(date_integration)<= "${dataform.projectConfig.vars.rundate}")
+-- DATE(TIMESTAMP_MILLIS(metadata.date_integration))<= "${dataform.projectConfig.vars.rundate}")
+-- PARSE_DATE('%Y-%m-%d', "${dataform.projectConfig.vars.rundate}")
+
+-- PARSE_DATE('%Y-%m-%d', "${dataform.projectConfig.vars.rundate}")

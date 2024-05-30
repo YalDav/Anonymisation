@@ -1,0 +1,15 @@
+config {
+        type: "view",
+        schema: `${constants.customer_solution}`,
+        tags: ["daily", "prep"],
+        description: "get the last update date from web command 1p and 3p",
+        name: "vw_weborder_marketplace_last_date"
+}
+select distinct market_id_cus.id_customer_bekom                         as id_compte_WEB,
+                MAX(market_histo.last_update_by_cd_status)
+                    over (partition by market_id_cus.id_customer_bekom) AS
+                                                                           last_date_globalweborder_id_cpte
+from ${ref("vw_prep_weborder_maketplace_histo")} market_histo
+         left join
+     ${ref("vw_prep_weborder_maketplace")} market_id_cus
+     on market_histo.id_global_order = market_id_cus.id_global_order

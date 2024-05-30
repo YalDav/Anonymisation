@@ -1,0 +1,20 @@
+config {
+  type: "view",
+  schema: `${constants.customer_solution}`,
+  tags: ["daily", "prep"],
+  description: "get the date of first creation date contact",
+  name: "vw_contact_first_creation_date"
+}
+select distinct rowid_object,
+                (SELECT MIN(col)
+                 FROM UNNEST(
+                              [create_date,
+                                  create_date_fusioncase]
+                      ) AS col) as create_date,
+                code_pays,
+                flag_anonymous,
+                no_carte_fid,
+                id_compte_fid,
+                id_compte_WEB,
+                code_type_compte
+from ${ref("vw_prep_contact")}

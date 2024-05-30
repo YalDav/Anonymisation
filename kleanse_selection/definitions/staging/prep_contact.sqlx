@@ -1,0 +1,41 @@
+config {
+  type: "view",
+  schema: "client_anonymisation_solution",
+  dependencies: ["contact_event_date_assertion","contact_max_integration_date_assertion","contact_volume_assertion"],
+  tags: ["daily", "prep"],
+  description: " Preparing Contact data, for next step, create_date: the date we created in rock not change any case, create_date_fusioncase: if there is a fusion we will have a new date",
+  name: "vw_prep_contact"
+}
+select distinct contact_all.rowid_object,
+                DATE(TIMESTAMP_MILLIS(contact_all.create_date),"Europe/Paris") as create_date,
+                DATE(TIMESTAMP_MILLIS(contact_all.create_date_fusioncase),"Europe/Paris") as create_date_fusioncase,
+                contact_all.code_pays,
+                contact_all.flag_anonymous,
+                contact_fid.no_carte_fid,
+                contact_fid.id_compte_fid,
+                compte_web.id_compte_WEB,
+                compte_web.code_type_compte
+
+from (select distinct contact.contact_details.rowid_object     rowid_object,
+                      contact.contact_details.xref_create_date create_date,
+                      contact.contact_details.date_creation create_date_fusioncase,
+                      contact.contact_details.code_pays        code_pays,
+                      contact.contact_details.flag_anonymous   flag_anonymous
+      from ${ref("contacts")}) AS contact_all
+         left join
+     (select distinct contact_o.contact.contact_details.rowid_object     rowid_object,
+                      fid_exp.compte_fidelite_details.no_carte           no_carte_fid,
+                      fid_exp.compte_fidelite_details.identifiant_compte id_compte_fid
+      from ${ref("contacts")} contact_o,
+           unnest(contact.comptesFidelite) fid_exp) contact_fid
+     on contact_fid.rowid_object = contact_all.rowid_object
+         left join
+     (select distinct contact_o.contact.contact_details.rowid_object   rowid_object,
+                      compte_web_exp.compte_details.identifiant_compte id_compte_WEB,
+                      compte_web_exp.compte_details.code_type_compte   code_type_compte
+      from ${ref("contacts")} contact_o,
+           unnest(contact.comptes) compte_web_exp
+      where compte_web_exp.compte_details.code_type_compte =
+            '1' --que les comptes bekom
+     ) compte_web
+     on compte_web.rowid_object = contact_all.rowid_object
